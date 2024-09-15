@@ -1,231 +1,336 @@
 #include "sistema.h"
 
-enum situacao {
-    andamento = 1,
-    concluido,
+enum situacao{
+    concluido = 1,
+    andamento,
     cancelado
 };
 
-enum tipo {
+enum tipo{
     pesquisa = 1,
-    estensao,
+    extensao,
     ensino
 };
 
-union nome {  
+union nome{  
     char titulo_projeto[50];  
     char coordenador[50];  
-    char alunos_envolvidos[100];  
+    char alunos_envolvidos[10][50];  
     char orgao_financeiro[20];  
 };
 
 struct dados {
     int codigo_identificador;
-    int data_inicio;
-    int data_termino;
+    char data_inicio[11];
+    char data_termino[11];
     char descricao_do_projeto[300];
     Nome nome;
     Tipo tipo;
     Situacao situacao;
 };
 
-Dados* alocar_dados(int total) {
-    Dados *dados = malloc(total * sizeof(Dados));
-    if (dados == NULL) {
-        printf("No memory!\n");
+struct no {
+    Dados projeto;
+    struct no *prox;
+};
+
+No* alocar_no() {
+    No *novo = malloc(sizeof(No));
+    if (novo == NULL) {
+        printf("Sem memória!\n");
         exit(1);
     }
-    return dados;
+    novo->prox = NULL;
+    return novo;
 }
 
-void adicionar_projeto(Dados *dados) {
+void adicionar_projeto(No **lista) {
+    No *novo = alocar_no();
     int alunos, i, orgao_fi;
     
-    do {
-        printf("Informe o tipo do seu projeto: \n1. Pesquisa\n2. Extensão\n3. Ensino\n4. Sair\n");
-        scanf("%d", &dados->tipo);
+    printf("Informe o tipo do seu projeto: \n1. Pesquisa\n2. Extensão\n3. Ensino\n");
+    scanf("%d", &novo->projeto.tipo);
+    getchar();
 
-        switch (dados->tipo) {
-            case 1:
-                dados->tipo = pesquisa;
-                strcpy(dados->descricao_do_projeto, "Pesquisa");
+    switch (novo->projeto.tipo) {
+        case 1:
+            novo->projeto.tipo = pesquisa;
+            strcpy(novo->projeto.descricao_do_projeto, "Pesquisa");
 
-                printf("Título do projeto: ");
-                scanf(" %[^\n]", dados->nome.titulo_projeto);
+            printf("Título do projeto: ");
+            scanf(" %[^\n]", novo->projeto.nome.titulo_projeto);
+            getchar();
+
+            printf("\nInforme o código do projeto: ");
+            scanf("%d", &novo->projeto.codigo_identificador);
+
+            printf("\nData de início (Dia/Mês/Ano): ");  
+            scanf(" %[^\n]", novo->projeto.data_inicio); 
+            getchar();
+
+            printf("\nSituação do projeto: \n1. Concluido\n2. Andamento\n3. Cancelado\n");
+            scanf("%d", &novo->projeto.situacao);
+
+            if (novo->projeto.situacao == 1) {
+                printf("\nData de Termino (Dia/Mês/Ano): ");
+                scanf(" %[^\n]", &novo->projeto.data_termino);
                 getchar();
+            } else if(novo->projeto.situacao == 2) {
+                printf("\nProjeto em andamento!\n");
+            } else if(novo->projeto.situacao == 3){
+                printf("\nProjeto Cancelado!\n");
+            } else{
+                printf("Código não identificado!");
+            }
 
-                printf("Informe o código do projeto: ");
-                scanf("%d", &dados->codigo_identificador);
+            printf("\nInforme o nome do coordenador: ");
+            scanf(" %[^\n]", novo->projeto.nome.coordenador);
+            getchar();
 
-                printf("Data de inicio: ");
-                scanf("%d/%d/%d", &dados->data_inicio, &dados->data_inicio, &dados->data_inicio);
+            printf("\nInforme o numero total de alunos envolvidos: ");  
+            scanf("%d", &alunos);  
+            getchar();
 
-                printf("Situação do projeto: \n1. Concluido\n2. Andamento\n3. Cancelado\n");
-                scanf("%d", &dados->situacao);
+            for (i = 0; i < alunos; i++){  
+                printf("Nome do aluno %d: ", i + 1);  
+                scanf(" %[^\n]", novo->projeto.nome.alunos_envolvidos[i]);
+                getchar();  
+            }
 
-                if(dados->situacao == 1){
-                    printf("Data de Termino: ");
-                    scanf("%d/%d/%d", &dados->data_termino, &dados->data_termino, &dados->data_termino);
-                } else if(dados->situacao == 2){
-                    printf("Andamento...\n");
-                } else{
-                    printf("Cancelado!!!\n");
-                }
+            printf("\nHá órgão financeiro? \n1. Sim\n2. Não\n");
+            scanf("%d", &orgao_fi);
+            getchar();
 
-                printf("Informe o nome do coordenador: ");
-                scanf(" %[^\n]", dados->nome.coordenador);
-
-                printf("Informe o numero total de aluno envolvidos no projeto: ");
-                scanf("%d", &alunos);
-
-                for(i = 0; i < alunos; i++){
-                    printf("Informe o nome dos alunos envolvidos: ");
-                    scancf(" %[^\n]", dados->nome.alunos_envolvidos);
-                }
-
-                do{
-                    printf("Há orgão financeiro: \n1. Sim\n2. Não\n");
-                    scanf("%d", &orgao_fi);
-
-                    if(orgao_fi == 1){
-                        printf("Informe o nome do orgão financeiro: ");
-                        scanf(" %[^\n]", dados->nome.orgao_financeiro);
-                    } else if(orgao_fi == 2){
-                        printf("Não há orgão financeiro para esse projeto!\n");
-                    } else{
-                        printf("Opção invalida!\n");
-                    }
-
-                }while(orgao_fi != 2);
-
-                printf("Descreva o seu projeto: ");
-                scanf(" %[^\n]", dados->descricao_do_projeto);
-                
-                break;
-
-            case 2:
-                dados->tipo = estensao;
-                strcpy(dados->descricao_do_projeto, "Extensão");
-
-                printf("Título do projeto: ");
-                scanf(" %[^\n]", dados->nome.titulo_projeto);
+            if (orgao_fi == 1) {
+                printf("\nInforme o nome do órgão financeiro: ");
+                scanf(" %[^\n]", novo->projeto.nome.orgao_financeiro);
                 getchar();
+            } else if (orgao_fi == 2) {
+                printf("\nNão há orgão financeiro!");
+            } else{
+                printf("Código não identificado!");
+            }
 
-                printf("Informe o código do projeto: ");
-                scanf("%d", &dados->codigo_identificador);
+            printf("\nDescreva o seu projeto: ");
+            scanf(" %[^\n]", novo->projeto.descricao_do_projeto);
+            getchar();
+            break;
 
-                printf("Data de inicio: ");
-                scanf("%d/%d/%d", &dados->data_inicio, &dados->data_inicio, &dados->data_inicio);
-                
-                printf("Situação do projeto: \n1. Concluido\n2. Andamento\n3. Cancelado\n");
-                scanf("%d", &dados->situacao);
+        case 2:
+            novo->projeto.tipo = extensao;
+            strcpy(novo->projeto.descricao_do_projeto, "Extensão");
 
-                if(dados->situacao == 1){
-                    printf("Data de Termino: ");
-                    scanf("%d/%d/%d", &dados->data_termino, &dados->data_termino, &dados->data_termino);
-                } else if(dados->situacao == 2){
-                    printf("Andamento...\n");
-                } else{
-                    printf("Cancelado!!!\n");
-                }
+            printf("Título do projeto: ");
+            scanf(" %[^\n]", novo->projeto.nome.titulo_projeto);
+            getchar();
 
-                printf("Informe o nome do coordenador: ");
-                scanf(" %[^\n]", dados->nome.coordenador);
-                
-                printf("Informe o numero total de aluno envolvidos no projeto: ");
-                scanf("%d", &alunos);
+            printf("\nInforme o código do projeto: ");
+            scanf("%d", &novo->projeto.codigo_identificador);
 
-                for(i = 0; i < alunos; i++){
-                    printf("Informe o nome dos alunos envolvidos: ");
-                    scancf(" %[^\n]", dados->nome.alunos_envolvidos);
-                }
+            printf("\nData de início (Dia/Mês/Ano): ");  
+            scanf(" %[^\n]", novo->projeto.data_inicio); 
+            getchar();
 
-                do{
+            printf("\nSituação do projeto: \n1. Concluido\n2. Andamento\n3. Cancelado\n");
+            scanf("%d", &novo->projeto.situacao);
 
-                    printf("Há orgão financeiro: \n1. Sim\n2. Não\n");
-                    scanf("%d", &orgao_fi);
-
-                    if(orgao_fi == 1){
-                        printf("Informe o nome do orgão financeiro: ");
-                        scanf(" %[^\n]", dados->nome.orgao_financeiro);
-                    } else if(orgao_fi == 2){
-                        printf("Não há orgão financeiro para esse projeto!\n");
-                    } else{
-                        printf("Opção invalida!\n");
-                    }
-
-                }while(orgao_fi != 2);
-
-                printf("Descreva o seu projeto: ");
-                scanf(" %[^\n]", dados->descricao_do_projeto);
-
-                break;
-
-            case 3:
-                dados->tipo = ensino;
-                strcpy(dados->descricao_do_projeto, "Ensino");
-
-                printf("Título do projeto: ");
-                scanf(" %[^\n]", dados->nome.titulo_projeto);
+            if (novo->projeto.situacao == 1) {
+                printf("\nData de Termino (Dia/Mês/Ano): ");
+                scanf(" %[^\n]", &novo->projeto.data_termino);
                 getchar();
+            } else if(novo->projeto.situacao == 2) {
+                printf("\nProjeto em andamento!\n");
+            } else if(novo->projeto.situacao == 3){
+                printf("\nProjeto Cancelado!\n");
+            } else{
+                printf("Código não identificado!");
+            }
 
-                printf("Informe o código do projeto: ");
-                scanf("%d", &dados->codigo_identificador);
+            printf("\nInforme o nome do coordenador: ");
+            scanf(" %[^\n]", novo->projeto.nome.coordenador);
+            getchar();
 
-                printf("Data de inicio: ");
-                scanf("%d/%d/%d", &dados->data_inicio, &dados->data_inicio, &dados->data_inicio);
+            printf("\nInforme o numero total de alunos envolvidos: ");  
+            scanf("%d", &alunos);  
+            getchar();
 
-                printf("Situação do projeto: \n1. Concluido\n2. Andamento\n3. Cancelado\n");
-                scanf("%d", &dados->situacao);
+            for (i = 0; i < alunos; i++){  
+                printf("Nome do aluno %d: ", i + 1);  
+                scanf(" %[^\n]", novo->projeto.nome.alunos_envolvidos[i]);
+                getchar();  
+            }
 
-                if(dados->situacao == 1){
-                    printf("Data de Termino: ");
-                    scanf("%d/%d/%d", &dados->data_termino, &dados->data_termino, &dados->data_termino);
-                } else if(dados->situacao == 2){
-                    printf("Andamento...\n");
-                } else{
-                    printf("Cancelado!!!\n");
-                }
+            printf("\nHá órgão financeiro? \n1. Sim\n2. Não\n");
+            scanf("%d", &orgao_fi);
+            getchar();
 
-                printf("Informe o nome do coordenador: ");
-                scanf(" %[^\n]", dados->nome.coordenador);
+            if (orgao_fi == 1) {
+                printf("\nInforme o nome do órgão financeiro: ");
+                scanf(" %[^\n]", novo->projeto.nome.orgao_financeiro);
+                getchar();
+            } else if (orgao_fi == 2) {
+                printf("\nNão há orgão financeiro!");
+            } else{
+                printf("Código não identificado!");
+            }
 
-                printf("Informe o numero total de aluno envolvidos no projeto: ");
-                scanf("%d", &alunos);
+            printf("\nDescreva o seu projeto: ");
+            scanf(" %[^\n]", novo->projeto.descricao_do_projeto);
+            getchar();
+            break;
 
-                for(i = 0; i < alunos; i++){
-                    printf("Informe o nome dos alunos envolvidos: ");
-                    scancf(" %[^\n]", dados->nome.alunos_envolvidos);
-                }
+        case 3:
+            novo->projeto.tipo = ensino;
+            strcpy(novo->projeto.descricao_do_projeto, "Ensino");
 
-                do{
+            printf("Título do projeto: ");
+            scanf(" %[^\n]", novo->projeto.nome.titulo_projeto);
+            getchar();
 
-                    printf("Há orgão financeiro: \n1. Sim\n2. Não\n");
-                    scanf("%d", &orgao_fi);
+            printf("\nInforme o código do projeto: ");
+            scanf("%d", &novo->projeto.codigo_identificador);
 
-                    if(orgao_fi == 1){
-                        printf("Informe o nome do orgão financeiro: ");
-                        scanf(" %[^\n]", dados->nome.orgao_financeiro);
-                    } else if(orgao_fi == 2){
-                        printf("Não há orgão financeiro para esse projeto!\n");
-                    } else{
-                        printf("Opção invalida!\n");
-                    }
+            printf("\nData de início (Dia/Mês/Ano): ");  
+            scanf(" %[^\n]", novo->projeto.data_inicio); 
+            getchar();
 
-                }while(orgao_fi != 2);
+            printf("\nSituação do projeto: \n1. Concluido\n2. Andamento\n3. Cancelado\n");
+            scanf("%d", &novo->projeto.situacao);
 
-                printf("Descreva o seu projeto: ");
-                scanf(" %[^\n]", dados->descricao_do_projeto);
+            if (novo->projeto.situacao == 1) {
+                printf("\nData de Termino (Dia/Mês/Ano): ");
+                scanf(" %[^\n]", &novo->projeto.data_termino);
+                getchar();
+            } else if(novo->projeto.situacao == 2) {
+                printf("\nProjeto em andamento!\n");
+            } else if(novo->projeto.situacao == 3){
+                printf("\nProjeto Cancelado!\n");
+            } else{
+                printf("Código não identificado!");
+            }
 
-                break;
-                    
-            case 4:
-                printf("Saindo...\n");
-                break;
+            printf("\nInforme o nome do coordenador: ");
+            scanf(" %[^\n]", novo->projeto.nome.coordenador);
+            getchar();
+
+            printf("\nInforme o numero total de alunos envolvidos: ");  
+            scanf("%d", &alunos);  
+            getchar();
+
+            for (i = 0; i < alunos; i++){  
+                printf("Nome do aluno %d: ", i + 1);  
+                scanf(" %[^\n]", novo->projeto.nome.alunos_envolvidos[i]);
+                getchar();  
+            }
+
+            printf("\nHá órgão financeiro? \n1. Sim\n2. Não\n");
+            scanf("%d", &orgao_fi);
+            getchar();
+
+            if (orgao_fi == 1) {
+                printf("\nInforme o nome do órgão financeiro: ");
+                scanf(" %[^\n]", novo->projeto.nome.orgao_financeiro);
+                getchar();
+            } else if (orgao_fi == 2) {
+                printf("\nNão há orgão financeiro!");
+            } else{
+                printf("Código não identificado!");
+            }
+
+            printf("\nDescreva o seu projeto: ");
+            scanf(" %[^\n]", novo->projeto.descricao_do_projeto);
+            getchar();
+            break;     
 
             default:
-                printf("Tipo não encontrado!\n");
+            printf("Tipo inválido!\n");
+            free(novo);
+            return;
+    }
+
+    novo->prox = *lista;
+    *lista = novo;
+}
+
+void imprimir_projeto(No *lista) {
+    while (lista != NULL) {
+        printf(" --- Título do projeto ---\n");
+        printf("%s\n", lista->projeto.nome.titulo_projeto);
+
+        printf(" --- Código do projeto ---\n");
+        printf("%d\n", lista->projeto.codigo_identificador);
+
+        printf(" --- Data de início ---\n");
+        printf("%s\n", lista->projeto.data_inicio);
+
+        printf(" --- Situação ---\n");
+        switch (lista->projeto.situacao) {
+            case concluido:
+                printf("Concluído\n");
+                break;
+            case andamento:
+                printf("Andamento\n");
+                break;
+            case cancelado:
+                printf("Cancelado\n");
+                break;
+            default:
+                printf("Situação desconhecida\n");
                 break;
         }
-    } while (dados->tipo != 4);
+
+        printf(" --- Data de Término ---\n");
+        printf("%s\n", lista->projeto.data_termino);
+
+        printf(" --- Coordenador ---\n");
+        printf("%s\n", lista->projeto.nome.coordenador);
+        
+        printf(" --- Alunos Envolvidos ---\n");
+        int i = 0;
+        while (i < 10 && lista->projeto.nome.alunos_envolvidos[i][0] != '\0') {
+            printf("%s\n", lista->projeto.nome.alunos_envolvidos[i]);
+            i++;
+        }
+
+        printf(" --- Órgão Financeiro ---\n");
+        printf("%s\n", lista->projeto.nome.orgao_financeiro);
+
+        printf(" --- Descrição do Projeto ---\n");
+        printf("%s\n", lista->projeto.descricao_do_projeto);
+
+        lista = lista->prox;
+    }
+}
+
+void excluir_projeto(No **lista, int codigo_identificador) {
+    No *aux = *lista;
+    No *ant = NULL;
+
+    while (aux != NULL && aux->projeto.codigo_identificador != codigo_identificador) {
+        ant = aux;
+        aux = aux->prox;
+    }
+
+    if (aux == NULL) {
+        printf("Projeto não encontrado.\n");
+        return;
+    }
+
+    if (ant == NULL) {
+        *lista = aux->prox;
+    } else {
+        ant->prox = aux->prox;
+    }
+
+    free(aux);
+    printf("Projeto foi removido com sucesso.\n");
+}
+
+void liberar_lista(No *lista) {
+    No *ant = lista;
+    while (ant != NULL) {
+        No *temp = ant;
+        ant = ant->prox;
+        free(temp);
+    }
 }
