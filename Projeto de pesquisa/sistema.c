@@ -540,10 +540,11 @@ void ler_arquivo(No **lista, char *nome_arquivo) {
 }
 
 void liberar_lista(No *lista){
-    No *ant = lista;
-    while (ant != NULL) {
-        No *temp = ant;
-        ant = ant->prox;
+    No *atual = *lista;
+    while (atual != NULL) {
+        No *temp = atual;
+        atual = atual->prox;
         free(temp);
     }
+    *lista = NULL;
 }
