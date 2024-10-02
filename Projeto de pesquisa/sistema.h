@@ -1,18 +1,25 @@
 #ifndef SISTEMA_H  
 #define SISTEMA_H 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef struct dados Dados;
 
+typedef struct data Data;
+
 typedef struct no No;
+
+typedef struct nome Nome;
 
 typedef enum tipo Tipo;
 
 typedef enum situacao Situacao;
 
-typedef struct nome Nome;
+No *alocar_no(int valor);
+
+int verificar_data(int dia, int mes, int ano);
 
 void adicionar_projeto(No **lista);
 
@@ -36,4 +43,4 @@ void editar_dados_do_projeto(No *lista);
 
 void liberar_lista(No *lista);
 
-#endif //SISTEMA_H
+#endif
