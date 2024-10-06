@@ -196,6 +196,7 @@ void adicionar_projeto(No **lista, int *proximo_id, char *nome_arquivo) {
     scanf(" %[^\n]", novo->projeto.descricao_do_projeto);
     getchar();
 
+    //adiciona um novo nó no início da lista (lista encadeada simples)
     novo->prox = *lista;
     *lista = novo;
 
@@ -266,6 +267,7 @@ void listar_projeto(No *lista) {
         printf("Descrição do Projeto: %s\n", lista->projeto.descricao_do_projeto);
         printf("----------------------------------------\n");
 
+        //move o ponteiro para o proximo no da lista (lista simples)
         lista = lista->prox;
         contador++;
     }
@@ -341,6 +343,7 @@ void abrir_arquivo(No *lista, char *nome_arquivo) {
 
         fprintf(arquivo, "Descrição do projeto: %s\n\n", aux->projeto.descricao_do_projeto);
 
+        //move o ponteiro para o proximo no da lista (lista simples)
         aux = aux->prox;
     }
 
@@ -352,22 +355,26 @@ void excluir_projeto(No **lista, int id_unico) {
     No *aux = *lista;
     No *ant = NULL;
 
+    //Percorrer a lista até encontrar o nó com o id_unico ou chegar ao final da lista
     while (aux != NULL && aux->id_unico != id_unico) {
         ant = aux;
         aux = aux->prox;
     }
 
+    // Verifica se o nó com o id_unico foi encontrado
     if (aux == NULL) {
         printf("Projeto com ID %d não encontrado.\n", id_unico);
         return;
     }
 
+    // Se o nó a ser removido é o primeiro nó da lista
     if (ant == NULL) {
-        *lista = aux->prox;
+        *lista = aux->prox; // Atualiza o ponteiro do início da lista para o próximo nó
     } else {
-        ant->prox = aux->prox;
+        ant->prox = aux->prox; 
     }
 
+    // Libera a memória do nó removido
     free(aux);
     printf("Projeto com ID %d excluído com sucesso.\n", id_unico);
 }
@@ -386,6 +393,7 @@ void consultar_projeto_por_tipo(No *lista){
             printf("Coordenador: %s\t\n", lista->projeto.nome.coordenador);
             printf("Descrição: %s\n\n", lista->projeto.descricao_do_projeto);
         }
+        //move o ponteiro para o proximo no da lista (lista simples)
         lista = lista->prox; 
     }
 }
@@ -404,6 +412,7 @@ void consultar_projeto_por_situacao(No *lista){
             printf("Coordenador: %s\t\n", lista->projeto.nome.coordenador);
             printf("Descrição: %s\n\n", lista->projeto.descricao_do_projeto);
         }
+        //move o ponteiro para o proximo no da lista (lista simples)
         lista = lista->prox;
     }
 }
@@ -459,22 +468,23 @@ void buscar_projeto_por_codigo(No *lista){
             listar_projeto_unico(lista);
             return;
         }
+        //move o ponteiro para o proximo no da lista (lista simples)
         lista = lista->prox;
     }
     printf("\nProjeto não encontrado!\n");
 }
 
 void editar_dados_do_projeto(No *lista) {
-    int codigo;
+    int id_unico;
 
-    printf("\nDigite o código do projeto que deseja editar: ");
-    scanf("%d", &codigo);
+    printf("\nDigite o ID do projeto que deseja editar: ");
+    scanf("%d", &id_unico);
     getchar();
 
     No *aux = lista;
 
     while (aux != NULL) {
-        if (aux->projeto.codigo_identificador == codigo) {
+        if (aux->id_unico == id_unico) {
             printf("Novo título: ");
             scanf(" %[^\n]", aux->projeto.nome.titulo_projeto);
             getchar();
@@ -536,16 +546,27 @@ void editar_dados_do_projeto(No *lista) {
             scanf("%d", &num_alunos);
             getchar();
 
-            int i;
+            int i, orgao_fi;
             for (i = 0; i < num_alunos; i++) {
                 printf("Nome do aluno %d: ", i + 1);
                 scanf(" %[^\n]", aux->projeto.nome.alunos_envolvidos[i]);
                 getchar();
             }
 
-            printf("Novo órgão financeiro: ");
-            scanf(" %[^\n]", aux->projeto.nome.orgao_financeiro);
+            printf("\nHá órgão financeiro? \n1. Sim\n2. Não\n");
+            scanf("%d", &orgao_fi);
             getchar();
+
+            if (orgao_fi == 1) {
+                printf("\nInforme o nome do órgão financeiro: ");
+                scanf(" %[^\n]", aux->projeto.nome.orgao_financeiro);
+                getchar();
+            } else if (orgao_fi == 2) {
+                printf("\nNão há órgão financeiro!\n");
+                aux->projeto.nome.orgao_financeiro[0] = '\0';
+            } else {
+                printf("Código não identificado!\n");
+            }
 
             printf("Nova descrição: ");
             scanf(" %[^\n]", aux->projeto.descricao_do_projeto);
@@ -554,11 +575,12 @@ void editar_dados_do_projeto(No *lista) {
             printf("Projeto editado com sucesso!\n");
             return;
         }
+        // Move o ponteiro para o próximo nó na lista (lista encadeada simples)
         aux = aux->prox;
     }
-
-    printf("Projeto com código %d não encontrado.\n", codigo);
+    printf("Projeto com ID %d não encontrado.\n", id_unico);
 }
+
 
 void ler_arquivo(No **lista, char *nome_arquivo, int *proximo_id) {
     FILE *arquivo = fopen(nome_arquivo, "rt");
@@ -624,6 +646,7 @@ void ler_arquivo(No **lista, char *nome_arquivo, int *proximo_id) {
 
         fscanf(arquivo, "Descrição do projeto: %[^\n]\n", novo->projeto.descricao_do_projeto);
 
+        //adiciona um novo nó no início da lista (lista encadeada simples)
         novo->prox = *lista;
         *lista = novo;
 
