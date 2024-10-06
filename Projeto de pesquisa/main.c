@@ -28,7 +28,7 @@ int main() {
 
         switch (opcao){
             case 1:
-                adicionar_projeto(&lista);
+                adicionar_projeto(&lista, nome_arquivo);
                 abrir_arquivo(lista, nome_arquivo);
                 break;
             case 2:
