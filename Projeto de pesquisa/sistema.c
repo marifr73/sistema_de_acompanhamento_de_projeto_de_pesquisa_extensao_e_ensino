@@ -33,18 +33,19 @@ struct dados{
     Situacao situacao;
 };
 
-struct no{
+struct no {
+    int id_unico;
     Dados projeto;
-    int valor;
     struct no *prox;
 };
 
-No* alocar_no(void) {
+No* alocar_no(int id) {
     No* novo = (No*) malloc(sizeof(No));
     if (novo == NULL) {
         printf("Erro ao alocar memória\n");
         exit(1);
     }
+    novo->id_unico = id;
     novo->prox = NULL;
     return novo;
 }
@@ -93,8 +94,8 @@ int verificar_data(int dia, int mes, int ano) {
     return 1;
 }
 
-void adicionar_projeto(No **lista, char *nome_arquivo){
-    No *novo = alocar_no();
+void adicionar_projeto(No **lista, int *proximo_id, char *nome_arquivo) {
+    No *novo = alocar_no((*proximo_id)++);
     int alunos, i, orgao_fi, tipo_projeto, situacao_projeto;
     
     printf("\nInforme o tipo do seu projeto: \n1. Pesquisa\n2. Extensão\n3. Ensino\n");
@@ -209,7 +210,8 @@ void listar_projeto(No *lista) {
 
     int contador = 0;
     while (lista != NULL) {
-        printf("\nTítulo do projeto: %s\n", lista->projeto.nome.titulo_projeto);
+        printf("\nID do projeto: %d\n", lista->id_unico);
+        printf("Título do projeto: %s\n", lista->projeto.nome.titulo_projeto);
         printf("Código do projeto: %d\n", lista->projeto.codigo_identificador);
         printf("Data de início: %02d/%02d/%04d\n", lista->projeto.data.dia_inicio, lista->projeto.data.mes_inicio, lista->projeto.data.ano_inicio);
 
@@ -279,9 +281,9 @@ void abrir_arquivo(No *lista, char *nome_arquivo) {
         return;
     }
 
-    int i;
     No *aux = lista;
     while (aux != NULL) {
+        fprintf(arquivo, "ID Único: %d\n", aux->id_unico);
         fprintf(arquivo, "Tipo: ");
         switch (aux->projeto.tipo) {
             case pesquisa:
@@ -327,7 +329,7 @@ void abrir_arquivo(No *lista, char *nome_arquivo) {
         }
         fprintf(arquivo, "Total de alunos: %d\n", num_alunos);
 
-        for (i = 0; i < num_alunos; i++) {
+        for (int i = 0; i < num_alunos; i++) {
             fprintf(arquivo, "Alunos envolvidos: %s\n", aux->projeto.nome.alunos_envolvidos[i]);
         }
 
@@ -345,17 +347,18 @@ void abrir_arquivo(No *lista, char *nome_arquivo) {
     fclose(arquivo);
 }
 
-void excluir_projeto(No **lista, int codigo_identificador) {
+
+void excluir_projeto(No **lista, int id_unico) {
     No *aux = *lista;
     No *ant = NULL;
 
-    while (aux != NULL && aux->projeto.codigo_identificador != codigo_identificador) {
+    while (aux != NULL && aux->id_unico != id_unico) {
         ant = aux;
         aux = aux->prox;
     }
 
     if (aux == NULL) {
-        printf("Projeto com código %d não encontrado.\n", codigo_identificador);
+        printf("Projeto com ID %d não encontrado.\n", id_unico);
         return;
     }
 
@@ -366,7 +369,7 @@ void excluir_projeto(No **lista, int codigo_identificador) {
     }
 
     free(aux);
-    abrir_arquivo(*lista, "projetos.txt");
+    printf("Projeto com ID %d excluído com sucesso.\n", id_unico);
 }
 
 void consultar_projeto_por_tipo(No *lista){
@@ -557,7 +560,7 @@ void editar_dados_do_projeto(No *lista) {
     printf("Projeto com código %d não encontrado.\n", codigo);
 }
 
-void ler_arquivo(No **lista, char *nome_arquivo) {
+void ler_arquivo(No **lista, char *nome_arquivo, int *proximo_id) {
     FILE *arquivo = fopen(nome_arquivo, "rt");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo!\n");
@@ -565,17 +568,19 @@ void ler_arquivo(No **lista, char *nome_arquivo) {
     }
 
     char tipo[50], situacao[50], orgao_financeiro[50];
+    int id_unico;
     No *novo;
     int i;
 
-    while (fscanf(arquivo, "Tipo: %[^\n]\n", tipo) == 1) {
-        novo = alocar_no();
+    while (fscanf(arquivo, "ID Único: %d\n", &id_unico) == 1) {
+        novo = alocar_no(id_unico);
         if (novo == NULL) {
             printf("Erro ao alocar memória!\n");
             fclose(arquivo);
             return;
         }
 
+        fscanf(arquivo, "Tipo: %[^\n]\n", tipo);
         if (strcmp(tipo, "Pesquisa") == 0) {
             novo->projeto.tipo = pesquisa;
         } else if (strcmp(tipo, "Extensão") == 0) {
@@ -621,8 +626,12 @@ void ler_arquivo(No **lista, char *nome_arquivo) {
 
         novo->prox = *lista;
         *lista = novo;
-    }
 
+        // Atualize proximo_id
+        if (novo->id_unico >= *proximo_id) {
+            *proximo_id = novo->id_unico + 1;
+        }
+    }
     fclose(arquivo);
 }
 
