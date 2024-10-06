@@ -39,15 +39,14 @@ struct no{
     struct no *prox;
 };
 
-No *alocar_no(int valor){
+No* alocar_no(void) {
     No* novo = (No*) malloc(sizeof(No));
     if (novo == NULL) {
-        printf("Erro ao alocar memória");
+        printf("Erro ao alocar memória\n");
         exit(1);
     }
-    novo->valor = valor;
     novo->prox = NULL;
-    return novo; 
+    return novo;
 }
 
 int verificar_data(int dia, int mes, int ano) {
@@ -94,8 +93,8 @@ int verificar_data(int dia, int mes, int ano) {
     return 1;
 }
 
-void adicionar_projeto(No **lista){
-    No *novo = alocar_no(0);
+void adicionar_projeto(No **lista, char *nome_arquivo){
+    No *novo = alocar_no();
     int alunos, i, orgao_fi, tipo_projeto, situacao_projeto;
     
     printf("\nInforme o tipo do seu projeto: \n1. Pesquisa\n2. Extensão\n3. Ensino\n");
@@ -198,58 +197,82 @@ void adicionar_projeto(No **lista){
 
     novo->prox = *lista;
     *lista = novo;
+
+    abrir_arquivo(*lista, nome_arquivo);
 }
 
-void listar_projeto(No *lista){
+void listar_projeto(No *lista) {
     if (lista == NULL) {
         printf("Nenhum projeto encontrado!\n");
         return;
-    } else{
-        int contador = 0;
-        while (lista != NULL){
-            printf("\nTítulo do projeto: %s\t\n", lista->projeto.nome.titulo_projeto);
-
-            printf("Código do projeto: %d\t\n", lista->projeto.codigo_identificador);
-
-            printf("Data de início: %02d/%02d/%04d\n", lista->projeto.data.dia_inicio, lista->projeto.data.mes_inicio, lista->projeto.data.ano_inicio);
-
-            switch (lista->projeto.situacao) {
-                case concluido:
-                    printf("Situação: Concluído\n");
-                    printf("Data de término: %02d/%02d/%04d\n", lista->projeto.data.dia_termino, lista->projeto.data.mes_termino, lista->projeto.data.ano_termino);
-                    break;
-                case andamento:
-                    printf("Situação: Andamento\n");
-                    break;
-                case cancelado:
-                    printf("Situação: Cancelado\n");
-                    break;
-                default:
-                    printf("Situação desconhecida!\n");
-                    break;
-            }
-
-            printf("Coordenador: %s\t\n", lista->projeto.nome.coordenador);
-            
-            printf("Alunos Envolvidos: \n");
-            int i = 0, s = 0;
-            for (i = 0; i < 50 && lista->projeto.nome.alunos_envolvidos[i][0] != '\0'; i++) {
-                printf("%d Aluno: %s\n",s + 1, lista->projeto.nome.alunos_envolvidos[i]);
-            }
-
-            printf("Órgão Financeiro: %s\n", lista->projeto.nome.orgao_financeiro[0] ? lista->projeto.nome.orgao_financeiro : "Não há órgão financeiro");
-
-            printf("Descrição do Projeto: %s\n", lista->projeto.descricao_do_projeto);
-            printf("----------------------------------------\n\n");
-
-            lista = lista->prox;
-            contador++;
-        }
-        printf("Total de projetos adicionados: %d\n", contador);
     }
+
+    int contador = 0;
+    while (lista != NULL) {
+        printf("\nTítulo do projeto: %s\n", lista->projeto.nome.titulo_projeto);
+        printf("Código do projeto: %d\n", lista->projeto.codigo_identificador);
+        printf("Data de início: %02d/%02d/%04d\n", lista->projeto.data.dia_inicio, lista->projeto.data.mes_inicio, lista->projeto.data.ano_inicio);
+
+        switch (lista->projeto.situacao) {
+            case concluido:
+                printf("Situação: Concluído\n");
+                printf("Data de término: %02d/%02d/%04d\n", lista->projeto.data.dia_termino, lista->projeto.data.mes_termino, lista->projeto.data.ano_termino);
+                break;
+            case andamento:
+                printf("Situação: Andamento\n");
+                printf("Data de término: --/--/----\n");
+                break;
+            case cancelado:
+                printf("Situação: Cancelado\n");
+                printf("Data de término: --/--/----\n");
+                break;
+            default:
+                printf("Situação desconhecida!\n");
+                break;
+        }
+
+        if (strlen(lista->projeto.nome.coordenador) > 0) {
+            printf("Coordenador: %s\n", lista->projeto.nome.coordenador);
+        } else {
+            printf("Coordenador: Não informado\n");
+        }
+
+        printf("Alunos Envolvidos: ");
+        int numAlunos = 0;
+        for (int i = 0; i < 50 && lista->projeto.nome.alunos_envolvidos[i][0] != '\0'; i++) {
+            numAlunos++;
+        }
+        int s = 0;
+        if (numAlunos > 0) {
+            for (int i = 0; i < numAlunos; i++) {
+                printf("\n%d Aluno: %s", s + 1, lista->projeto.nome.alunos_envolvidos[i]);
+                s++;
+                if (i < numAlunos - 1) {
+                }
+            }
+            printf("\n");
+        } else {
+            printf("Nenhum aluno cadastrado.\n");
+        }
+
+        if (strlen(lista->projeto.nome.orgao_financeiro) > 0) {
+            printf("Órgão Financeiro: %s\n", lista->projeto.nome.orgao_financeiro);
+        } else {
+            printf("Órgão Financeiro: Não há órgão financeiro.\n");
+        }
+
+        printf("Descrição do Projeto: %s\n", lista->projeto.descricao_do_projeto);
+        printf("----------------------------------------\n");
+
+        lista = lista->prox;
+        contador++;
+    }
+
+    printf("Total de projetos adicionados: %d\n", contador);
 }
 
-void abrir_arquivo(No *lista, char *nome_arquivo){
+
+void abrir_arquivo(No *lista, char *nome_arquivo) {
     FILE *arquivo = fopen(nome_arquivo, "wt"); 
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo!\n");
@@ -285,17 +308,12 @@ void abrir_arquivo(No *lista, char *nome_arquivo){
                 fprintf(arquivo, "Concluído\n");
                 fprintf(arquivo, "Data de Término: %02d/%02d/%04d\n", aux->projeto.data.dia_termino, aux->projeto.data.mes_termino, aux->projeto.data.ano_termino);
                 break;
-
             case andamento:
                 fprintf(arquivo, "Andamento\n");
-                fprintf(arquivo, "Data de Término: --/--/----\n");
                 break;
-
             case cancelado:
                 fprintf(arquivo, "Cancelado\n");
-                fprintf(arquivo, "Data de Término: --/--/----\n");
                 break;
-
             default:
                 fprintf(arquivo, "Desconhecido\n");
                 break;
@@ -551,7 +569,7 @@ void ler_arquivo(No **lista, char *nome_arquivo) {
     int i;
 
     while (fscanf(arquivo, "Tipo: %[^\n]\n", tipo) == 1) {
-        novo = alocar_no(0);
+        novo = alocar_no();
         if (novo == NULL) {
             printf("Erro ao alocar memória!\n");
             fclose(arquivo);
@@ -582,8 +600,9 @@ void ler_arquivo(No **lista, char *nome_arquivo) {
         } else if (strcmp(situacao, "Cancelado") == 0) {
             novo->projeto.situacao = cancelado;
         }
+
         fscanf(arquivo, "Coordenador: %[^\n]\n", novo->projeto.nome.coordenador);
-        
+
         int num_alunos;
         fscanf(arquivo, "Total de alunos: %d\n", &num_alunos);
         for (i = 0; i < num_alunos; i++) {
@@ -591,20 +610,19 @@ void ler_arquivo(No **lista, char *nome_arquivo) {
         }
 
         fscanf(arquivo, "Órgão Financeiro: %[^\n]\n", orgao_financeiro);
-
         if (strcmp(orgao_financeiro, "Não há órgão financeiro!") == 0) {
-                novo->projeto.nome.orgao_financeiro[0] = '\0';
-            } else {
-                strncpy(novo->projeto.nome.orgao_financeiro, orgao_financeiro, sizeof(novo->projeto.nome.orgao_financeiro) - 1);
-                novo->projeto.nome.orgao_financeiro[sizeof(novo->projeto.nome.orgao_financeiro) - 1] = '\0';
-            }
+            novo->projeto.nome.orgao_financeiro[0] = '\0';
+        } else {
+            strncpy(novo->projeto.nome.orgao_financeiro, orgao_financeiro, sizeof(novo->projeto.nome.orgao_financeiro) - 1);
+            novo->projeto.nome.orgao_financeiro[sizeof(novo->projeto.nome.orgao_financeiro) - 1] = '\0';
+        }
 
-            fscanf(arquivo, "Descrição do projeto: %[^\n]\n", novo->projeto.descricao_do_projeto);
-
+        fscanf(arquivo, "Descrição do projeto: %[^\n]\n", novo->projeto.descricao_do_projeto);
 
         novo->prox = *lista;
         *lista = novo;
     }
+
     fclose(arquivo);
 }
 
