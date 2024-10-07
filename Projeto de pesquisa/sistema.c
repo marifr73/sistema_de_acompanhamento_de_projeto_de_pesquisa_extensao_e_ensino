@@ -90,7 +90,7 @@ int verificar_data(int dia, int mes, int ano) {
         }
     }
 
-    printf("Data válida: %02d/%02d/%04d\n", dia, mes, ano);
+    printf("Data: %02d/%02d/%04d\n", dia, mes, ano);
     return 1;
 }
 
@@ -142,7 +142,14 @@ void adicionar_projeto(No **lista, int *proximo_id, char *nome_arquivo) {
             do {
                 printf("\nData de Término (Dia/Mês/Ano): ");
                 scanf("%d/%d/%d", &novo->projeto.data.dia_termino, &novo->projeto.data.mes_termino, &novo->projeto.data.ano_termino);
-            } while (!verificar_data(novo->projeto.data.dia_termino, novo->projeto.data.mes_termino, novo->projeto.data.ano_termino));
+
+                // Verifica se a data de término é válida
+                if (!verificar_data(novo->projeto.data.dia_termino, novo->projeto.data.mes_termino, novo->projeto.data.ano_termino) || (novo->projeto.data.ano_termino < novo->projeto.data.ano_inicio) || (novo->projeto.data.ano_termino == novo->projeto.data.ano_inicio && novo->projeto.data.mes_termino < novo->projeto.data.mes_inicio) || (novo->projeto.data.ano_termino == novo->projeto.data.ano_inicio && novo->projeto.data.mes_termino == novo->projeto.data.mes_inicio && novo->projeto.data.dia_termino < novo->projeto.data.dia_inicio)){
+                    printf("Data de término inválida!\n");
+                } else {
+                    break;
+                }
+            } while (1);
             break;
         case 2:
             novo->projeto.situacao = andamento;
@@ -212,6 +219,22 @@ void listar_projeto(No *lista) {
     int contador = 0;
     while (lista != NULL) {
         printf("\nID do projeto: %d\n", lista->id_unico);
+        printf("Tipo do projeto: ");
+        switch (lista->projeto.tipo) {
+            case pesquisa:
+                printf("Pesquisa\n");
+                break;
+            case extensao:
+                printf("Extensão\n");
+                break;
+            case ensino:
+                printf("Ensino\n");
+                break;
+            default:
+                printf("Desconhecido\n");
+                break;
+        }
+        
         printf("Título do projeto: %s\n", lista->projeto.nome.titulo_projeto);
         printf("Código do projeto: %d\n", lista->projeto.codigo_identificador);
         printf("Data de início: %02d/%02d/%04d\n", lista->projeto.data.dia_inicio, lista->projeto.data.mes_inicio, lista->projeto.data.ano_inicio);
@@ -275,7 +298,6 @@ void listar_projeto(No *lista) {
     printf("Total de projetos adicionados: %d\n", contador);
 }
 
-
 void abrir_arquivo(No *lista, char *nome_arquivo) {
     FILE *arquivo = fopen(nome_arquivo, "wt"); 
     if (arquivo == NULL) {
@@ -314,9 +336,11 @@ void abrir_arquivo(No *lista, char *nome_arquivo) {
                 break;
             case andamento:
                 fprintf(arquivo, "Andamento\n");
+                fprintf(arquivo, "Data de Término: --/--/----\n");
                 break;
             case cancelado:
                 fprintf(arquivo, "Cancelado\n");
+                fprintf(arquivo, "Data de Término: --/--/----\n");
                 break;
             default:
                 fprintf(arquivo, "Desconhecido\n");
@@ -624,8 +648,16 @@ void ler_arquivo(No **lista, char *nome_arquivo, int *proximo_id) {
             fscanf(arquivo, "Data de Término: %02d/%02d/%04d\n", &novo->projeto.data.dia_termino, &novo->projeto.data.mes_termino, &novo->projeto.data.ano_termino);
         } else if (strcmp(situacao, "Andamento") == 0) {
             novo->projeto.situacao = andamento;
+            novo->projeto.data.dia_termino = 0;
+            novo->projeto.data.mes_termino = 0;
+            novo->projeto.data.ano_termino = 0;
+            fscanf(arquivo, "Data de Término: --/--/----\n");
         } else if (strcmp(situacao, "Cancelado") == 0) {
             novo->projeto.situacao = cancelado;
+            novo->projeto.data.dia_termino = 0;
+            novo->projeto.data.mes_termino = 0;
+            novo->projeto.data.ano_termino = 0;
+            fscanf(arquivo, "Data de Término: --/--/----\n");
         }
 
         fscanf(arquivo, "Coordenador: %[^\n]\n", novo->projeto.nome.coordenador);
