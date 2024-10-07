@@ -12,8 +12,8 @@ int main(){
         printf("1. Adicionar projeto\n");
         printf("2. Listar projetos\n");
         printf("3. Consultar projeto por tipo\n");
-        printf("4. Consultar projeto por situacao\n");
-        printf("5. Buscar projeto por codigo\n");
+        printf("4. Consultar projeto por situação\n");
+        printf("5. Buscar projeto por ID\n");
         printf("6. Editar projeto\n");
         printf("7. Excluir projeto\n");
         printf("8. Sair\n");
